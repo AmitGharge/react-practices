@@ -1,0 +1,1707 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:transparent}
+.shell{display:flex;gap:0;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+.sidebar{width:220px;flex-shrink:0;border-right:0.5px solid var(--color-border-tertiary);overflow-y:auto;background:var(--color-background-secondary)}
+.sidebar-header{padding:14px 16px 10px;font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.08em;text-transform:uppercase}
+.cat-label{padding:8px 16px 4px;font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.06em}
+.nav-item{padding:7px 16px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-left:2px solid transparent;transition:all .15s;line-height:1.35}
+.nav-item:hover{color:var(--color-text-primary);background:var(--color-background-primary)}
+.nav-item.active{color:var(--color-text-primary);border-left-color:#7F77DD;background:var(--color-background-primary);font-weight:500}
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;margin-bottom:12px}
+.badge.js{background:#EEEDFE;color:#3C3489}
+.badge.react{background:#E1F5EE;color:#085041}
+.badge.arch{background:#FAECE7;color:#712B13}
+.badge.perf{background:#FAEEDA;color:#633806}
+.badge.test{background:#EAF3DE;color:#27500A}
+.badge.sec{background:#FCEBEB;color:#791F1F}
+.practice-title{font-size:20px;font-weight:500;margin-bottom:6px;line-height:1.3}
+.practice-subtitle{font-size:14px;color:var(--color-text-secondary);margin-bottom:20px;line-height:1.6}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px}
+.code-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px 16px;font-family:var(--font-mono);font-size:12.5px;line-height:1.65;overflow-x:auto;white-space:pre;color:var(--color-text-primary);margin-bottom:16px}
+.tip-box{border:0.5px solid var(--color-border-tertiary);border-left:3px solid #7F77DD;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:16px}
+.tip-box.warn{border-left-color:#EF9F27}
+.tip-box.danger{border-left-color:#E24B4A}
+.tip-box.good{border-left-color:#1D9E75}
+.rule-list{list-style:none;margin-bottom:16px}
+.rule-list li{font-size:13px;color:var(--color-text-secondary);padding:4px 0 4px 16px;position:relative;line-height:1.55}
+.rule-list li::before{content:"—";position:absolute;left:0;color:var(--color-text-tertiary)}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tag{font-size:11px;padding:3px 8px;border-radius:4px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.nav-count{float:right;font-size:10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:1px 5px;color:var(--color-text-tertiary);margin-top:1px}
+</style>
+
+<div class="shell">
+<div class="sidebar">
+  <div class="sidebar-header">Practices <span style="float:right;font-size:10px;font-weight:400;color:var(--color-text-tertiary)">36 total</span></div>
+  <div id="nav"></div>
+</div>
+<div class="main" id="main"></div>
+</div>
+
+<script>
+const cats=[
+{label:"JavaScript Fundamentals",items:[
+{id:"closure",badge:"js",label:"Closure Pattern"},
+{id:"currying",badge:"js",label:"Currying & Partial Application"},
+{id:"immutability",badge:"js",label:"Immutability First"},
+{id:"pure-fn",badge:"js",label:"Pure Functions"},
+{id:"promise-chain",badge:"js",label:"Promise Composition"},
+{id:"optional-chain",badge:"js",label:"Optional Chaining & Nullish"},
+{id:"destructuring",badge:"js",label:"Destructuring & Spread"},
+{id:"module-pattern",badge:"js",label:"Module Pattern"},
+]},
+{label:"React Patterns",items:[
+{id:"compound",badge:"react",label:"Compound Components"},
+{id:"render-prop",badge:"react",label:"Render Props"},
+{id:"hoc",badge:"react",label:"Higher-Order Components"},
+{id:"controlled",badge:"react",label:"Controlled vs Uncontrolled"},
+{id:"custom-hook",badge:"react",label:"Custom Hooks"},
+{id:"provider",badge:"react",label:"Context + Provider Pattern"},
+{id:"portal",badge:"react",label:"Portals"},
+{id:"error-boundary",badge:"react",label:"Error Boundaries"},
+{id:"forward-ref",badge:"react",label:"forwardRef & useImperativeHandle"},
+]},
+{label:"Architecture",items:[
+{id:"separation",badge:"arch",label:"Separation of Concerns"},
+{id:"container-presenter",badge:"arch",label:"Container / Presenter"},
+{id:"feature-folder",badge:"arch",label:"Feature Folder Structure"},
+{id:"service-layer",badge:"arch",label:"Service Layer Pattern"},
+{id:"adapter",badge:"arch",label:"Adapter / Anti-Corruption Layer"},
+{id:"command-query",badge:"arch",label:"Command Query Separation"},
+{id:"event-emitter",badge:"arch",label:"Event Emitter / PubSub"},
+]},
+{label:"Performance",items:[
+{id:"memoization",badge:"perf",label:"Memoization (useMemo/useCallback)"},
+{id:"lazy-suspense",badge:"perf",label:"Code Splitting (lazy + Suspense)"},
+{id:"virtual-list",badge:"perf",label:"Virtualised Lists"},
+{id:"debounce-throttle",badge:"perf",label:"Debounce & Throttle"},
+{id:"web-worker",badge:"perf",label:"Offload with Web Workers"},
+]},
+{label:"State Management",items:[
+{id:"reducer",badge:"react",label:"useReducer for Complex State"},
+{id:"finite-state",badge:"react",label:"Finite State Machine (XState)"},
+{id:"optimistic-ui",badge:"react",label:"Optimistic UI Updates"},
+{id:"derived-state",badge:"react",label:"Derive — Don't Duplicate State"},
+]},
+{label:"Quality & Safety",items:[
+{id:"type-guard",badge:"js",label:"Type Guards & Branded Types"},
+{id:"null-object",badge:"js",label:"Null Object Pattern"},
+{id:"early-return",badge:"js",label:"Early Return / Guard Clauses"},
+{id:"error-first",badge:"js",label:"Error-First Callbacks & Result Types"},
+{id:"testing-trophy",badge:"test",label:"Testing Trophy Strategy"},
+]},
+];
+
+const data={
+closure:{title:"Closure Pattern",badge:"js",tags:["closures","scope","encapsulation","factory"],
+subtitle:"A function that retains access to its lexical scope even when executed outside it. One of JS's most powerful (and most misunderstood) features.",
+why:"Closures let you create private state, factory functions, and partially applied logic without classes.",
+code:`// Factory with private state
+function createCounter(initial = 0) {
+  let count = initial; // private — closure over count
+
+  return {
+    increment: () => ++count,
+    decrement: () => --count,
+    reset:     () => { count = initial; },
+    value:     () => count,
+  };
+}
+
+const counter = createCounter(10);
+counter.increment(); // 11
+counter.increment(); // 12
+counter.reset();     // back to 10
+
+// React use-case: closure in event handler
+function SearchBar({ onSearch }) {
+  const [term, setTerm] = useState('');
+
+  // The callback closes over 'term'
+  const handleSubmit = () => onSearch(term);
+
+  return <input value={term} onChange={e => setTerm(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()} />;
+}`,
+tip:"Stale closures inside useEffect are the #1 React bug. Always list every closure variable in the dependency array, or use useRef for values you read but don't want to re-subscribe to.",tiptype:"warn"},
+
+currying:{title:"Currying & Partial Application",badge:"js",tags:["currying","functional","composition","reuse"],
+subtitle:"Transform a multi-argument function into a chain of single-argument functions, enabling specialisation and reuse.",
+why:"Currying produces highly reusable, composable building blocks. Common in utility libraries and form validation.",
+code:`// Curried validator factory
+const validate = (rule) => (message) => (value) =>
+  rule(value) ? null : message;
+
+const required = validate(v => v != null && v !== '')
+                         ('This field is required');
+
+const minLength = (n) =>
+  validate(v => v.length >= n)(\`Min \${n} characters\`);
+
+// Compose validators
+const validatePassword = [required, minLength(8)];
+
+function runValidators(validators, value) {
+  return validators
+    .map(fn => fn(value))
+    .filter(Boolean);           // keep only error messages
+}
+
+runValidators(validatePassword, 'hi');
+// → ['Min 8 characters']
+
+// React form hook using curried validators
+function useField(validators = []) {
+  const [value, setValue] = useState('');
+  const errors = runValidators(validators, value);
+
+  return { value, onChange: e => setValue(e.target.value), errors };
+}`,
+tip:"Prefer explicit currying over lodash _.curry for clarity in codebases with mixed skill levels.",tiptype:"info"},
+
+immutability:{title:"Immutability First",badge:"js",tags:["immutability","pure","redux","state"],
+subtitle:"Never mutate data in place. Always return new references. This is the single most impactful habit for predictable state.",
+why:"Mutations cause silent bugs in React (stale renders), Redux (missed updates), and async code (race conditions).",
+code:`// BAD — mutating in place
+function addItem(cart, item) {
+  cart.items.push(item);   // ← mutation! React won't re-render
+  return cart;
+}
+
+// GOOD — return new references at every level
+function addItem(cart, item) {
+  return {
+    ...cart,
+    items: [...cart.items, item],
+    total: cart.total + item.price,
+  };
+}
+
+// Deep update helper (avoid lodash.cloneDeep — too slow)
+function updateNested(obj, path, value) {
+  const [head, ...rest] = path;
+  return rest.length === 0
+    ? { ...obj, [head]: value }
+    : { ...obj, [head]: updateNested(obj[head], rest, value) };
+}
+
+// Immer for ergonomic immutability
+import produce from 'immer';
+
+const nextState = produce(state, draft => {
+  draft.user.address.city = 'Bengaluru'; // looks like mutation — isn't
+});`,
+tip:"Object.freeze() only shallow-freezes. For production-grade enforcement, use Immer or a typed immutable library.",tiptype:"warn"},
+
+"pure-fn":{title:"Pure Functions",badge:"js",tags:["pure","functional","testable","deterministic"],
+subtitle:"Same inputs always produce same outputs, with no side effects. The cornerstone of testable, composable code.",
+why:"Pure functions are trivially testable, safe to memoize, parallelisable, and easy to reason about.",
+code:`// IMPURE — reads external state, mutates
+let tax = 0.18;
+function getTotal(price) {
+  tax += 0.001;           // side effect!
+  return price * (1 + tax); // depends on external mutable state
+}
+
+// PURE — explicit inputs, no side effects
+function getTotal(price, taxRate) {
+  return price * (1 + taxRate);
+}
+
+// Test is trivial
+expect(getTotal(100, 0.18)).toBe(118);
+
+// Separate side effects from logic (React pattern)
+// Pure logic ↓
+function applyDiscount(items, code) {
+  const rate = CODES[code] ?? 0;
+  return items.map(i => ({ ...i, price: i.price * (1 - rate) }));
+}
+
+// Component handles the side effect
+function Cart({ items }) {
+  const { code } = useDiscountCode();         // side effect boundary
+  const discounted = applyDiscount(items, code); // pure
+  return <ItemList items={discounted} />;
+}`,
+tip:"Push side effects (API calls, randomness, Date.now()) to the edges of your system. Keep the core pure.",tiptype:"good"},
+
+"promise-chain":{title:"Promise Composition",badge:"js",tags:["async","promises","composition","error-handling"],
+subtitle:"Chain, race, and compose async operations cleanly. Master async/await, Promise.all, allSettled, and custom abstractions.",
+why:"Ad-hoc promise handling leads to error-swallowing, nested callbacks, and race conditions in data fetching.",
+code:`// Parallel fetch with typed errors
+async function fetchDashboard(userId) {
+  const [user, orders, notifications] = await Promise.all([
+    api.getUser(userId),
+    api.getOrders(userId),
+    api.getNotifications(userId),
+  ]);
+  return { user, orders, notifications };
+}
+
+// Graceful degradation with allSettled
+async function fetchWidgets(ids) {
+  const results = await Promise.allSettled(ids.map(api.getWidget));
+  return results.map((r, i) =>
+    r.status === 'fulfilled'
+      ? r.value
+      : { id: ids[i], error: r.reason.message }
+  );
+}
+
+// Retry with exponential back-off
+async function fetchWithRetry(fn, retries = 3, delay = 300) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries === 0) throw err;
+    await new Promise(r => setTimeout(r, delay));
+    return fetchWithRetry(fn, retries - 1, delay * 2);
+  }
+}
+
+// React Query wraps all of this in a battle-tested hook
+const { data, error, isLoading } = useQuery({
+  queryKey: ['dashboard', userId],
+  queryFn: () => fetchDashboard(userId),
+  retry: 3,
+});`,
+tip:"Never use .catch() at the call site AND inside the function — you will swallow errors silently. Pick one boundary.",tiptype:"danger"},
+
+"optional-chain":{title:"Optional Chaining & Nullish Coalescing",badge:"js",tags:["optional-chaining","nullish","safety","modern-js"],
+subtitle:"Navigate uncertain data structures and provide safe defaults without defensive if-ladders.",
+why:"Deep access into API responses without defensive coding leads to TypeError crashes in production.",
+code:`// Without optional chaining — common anti-pattern
+const city =
+  user && user.profile && user.profile.address && user.profile.address.city;
+
+// With optional chaining (ES2020)
+const city = user?.profile?.address?.city;
+
+// Nullish coalescing ?? (not || — preserves falsy values like 0 or '')
+const port = config?.server?.port ?? 3000;  // only if null/undefined
+const count = data?.count ?? 0;
+
+// Optional method calls
+const formatted = date?.toISOString?.() ?? 'N/A';
+
+// Optional array access
+const first = items?.[0]?.name ?? 'Unknown';
+
+// React: safe data from API
+function UserCard({ user }) {
+  return (
+    <div>
+      <h2>{user?.displayName ?? user?.email ?? 'Anonymous'}</h2>
+      <p>{user?.profile?.bio ?? 'No bio provided'}</p>
+      <p>{user?.address?.city ?? 'Location unknown'}</p>
+    </div>
+  );
+}`,
+tip:"Don't over-chain. If a?.b?.c?.d?.e?.f exists in your code, your data model probably needs restructuring.",tiptype:"warn"},
+
+destructuring:{title:"Destructuring & Spread / Rest",badge:"js",tags:["destructuring","spread","rest","clean-code"],
+subtitle:"Extract, rename, default, and compose values declaratively. A simple syntax feature with outsized readability impact.",
+why:"Reduces boilerplate, makes function signatures self-documenting, and enables clean prop forwarding in React.",
+code:`// Parameter destructuring with defaults and rename
+function createUser({
+  name,
+  role = 'viewer',
+  address: { city = 'Unknown', country = 'IN' } = {},
+} = {}) {
+  return { name, role, city, country };
+}
+
+// Rest in destructuring — pick what you need, forward the rest
+function Button({ variant = 'primary', children, ...rest }) {
+  return (
+    <button className={\`btn btn--\${variant}\`} {...rest}>
+      {children}
+    </button>
+  );
+}
+
+// Swap without temp variable
+let [a, b] = [1, 2];
+[a, b] = [b, a];
+
+// Clone + override (common in reducers)
+const updated = { ...user, role: 'admin', updatedAt: Date.now() };
+
+// Array destructuring with skip
+const [, second,, fourth] = apiResponse.items;
+
+// Rename to avoid collisions
+const { data: userData, error: userError } = useUser(id);
+const { data: postsData, error: postsError } = usePosts(id);`,
+tip:"Avoid deeply nested destructuring in function parameters — it hides the shape of the data and hurts readability.",tiptype:"info"},
+
+"module-pattern":{title:"Module Pattern & Barrel Exports",badge:"js",tags:["modules","esm","encapsulation","barrel"],
+subtitle:"Use ES Modules to encapsulate internals and expose a deliberate public API. Barrel files organise imports cleanly.",
+why:"Without module discipline, any file can import any internal, creating accidental coupling that becomes impossible to refactor.",
+code:`// utils/date/index.ts — expose only what callers need
+export { formatDate } from './formatDate';
+export { parseDate } from './parseDate';
+export { isExpired } from './isExpired';
+// formatDate.ts internal helpers stay private
+
+// features/auth/index.ts — feature barrel
+export { AuthProvider } from './AuthProvider';
+export { useAuth }      from './useAuth';
+export { LoginForm }    from './LoginForm';
+// AuthContext, reducer, types stay internal
+
+// Caller — clean, no path archaeology
+import { useAuth } from '@/features/auth';
+import { formatDate } from '@/utils/date';
+
+// ANTI-PATTERN — leaks internals
+import { AuthContext } from '@/features/auth/context/AuthContext';
+import { authReducer } from '@/features/auth/reducer/authReducer';
+
+// Lazy loading with dynamic import
+const AdminPanel = lazy(() =>
+  import('@/features/admin').then(m => ({ default: m.AdminPanel }))
+);`,
+tip:"Barrel files can hurt tree-shaking in bundlers that don't support it well. Use /* @__PURE__ */ or check your bundler config.",tiptype:"warn"},
+
+compound:{title:"Compound Components",badge:"react",tags:["compound","context","composition","design-system"],
+subtitle:"A pattern where a parent component shares implicit state with child components via Context, letting callers compose flexible UIs without prop drilling.",
+why:"Ideal for design system components like Tabs, Accordion, Select, Dialog — flexible layouts without exposing internal state through props.",
+code:`// Compound Component — Tabs
+const TabsContext = React.createContext(null);
+
+function Tabs({ defaultTab, children }) {
+  const [active, setActive] = useState(defaultTab);
+  return (
+    <TabsContext.Provider value={{ active, setActive }}>
+      <div className="tabs">{children}</div>
+    </TabsContext.Provider>
+  );
+}
+
+function TabList({ children }) {
+  return <div role="tablist">{children}</div>;
+}
+
+function Tab({ id, children }) {
+  const { active, setActive } = useContext(TabsContext);
+  return (
+    <button
+      role="tab"
+      aria-selected={active === id}
+      onClick={() => setActive(id)}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TabPanel({ id, children }) {
+  const { active } = useContext(TabsContext);
+  return active === id ? <div role="tabpanel">{children}</div> : null;
+}
+
+Tabs.List  = TabList;
+Tabs.Tab   = Tab;
+Tabs.Panel = TabPanel;
+
+// Caller has full layout control
+<Tabs defaultTab="profile">
+  <Tabs.List>
+    <Tabs.Tab id="profile">Profile</Tabs.Tab>
+    <Tabs.Tab id="settings">Settings</Tabs.Tab>
+  </Tabs.List>
+  <Tabs.Panel id="profile"><ProfileView /></Tabs.Panel>
+  <Tabs.Panel id="settings"><SettingsView /></Tabs.Panel>
+</Tabs>`,
+tip:"Use React.Children.map + cloneElement only as a last resort. Context-based compound components are more composable.",tiptype:"info"},
+
+"render-prop":{title:"Render Props",badge:"react",tags:["render-props","inversion","reuse","data-sharing"],
+subtitle:"Pass a function as a prop that the component calls to render its output — inverting control back to the caller.",
+why:"Enables powerful data/behaviour sharing while giving callers total rendering flexibility. Popularised before hooks but still relevant for certain patterns.",
+code:`// Mouse tracker with render prop
+function MouseTracker({ render }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  return (
+    <div onMouseMove={e => setPos({ x: e.clientX, y: e.clientY })}>
+      {render(pos)}
+    </div>
+  );
+}
+
+// Caller decides how to render
+<MouseTracker
+  render={({ x, y }) => (
+    <Tooltip style={{ left: x, top: y }}>
+      Cursor: {x}, {y}
+    </Tooltip>
+  )}
+/>
+
+// children-as-function (same pattern, different prop name)
+function DataFetcher({ url, children }) {
+  const { data, loading, error } = useFetch(url);
+  return children({ data, loading, error });
+}
+
+<DataFetcher url="/api/user/1">
+  {({ data, loading, error }) => {
+    if (loading) return <Spinner />;
+    if (error)   return <ErrorBanner message={error.message} />;
+    return <UserCard user={data} />;
+  }}
+</DataFetcher>`,
+tip:"In most new code, a custom hook achieves the same result more cleanly. Render props shine when you need JSX-level control (e.g., injecting elements into portals or animation wrappers).",tiptype:"info"},
+
+hoc:{title:"Higher-Order Components (HOC)",badge:"react",tags:["HOC","decorator","cross-cutting","reuse"],
+subtitle:"A function that takes a component and returns an enhanced component — the OG React code-sharing pattern.",
+why:"HOCs handle cross-cutting concerns (auth guards, analytics, logging, feature flags) without modifying the original component.",
+code:`// withAuthGuard — redirects unauthenticated users
+function withAuthGuard(WrappedComponent, redirectTo = '/login') {
+  function GuardedComponent(props) {
+    const { user, isLoading } = useAuth();
+
+    if (isLoading) return <PageSpinner />;
+    if (!user) {
+      return <Navigate to={redirectTo} replace />;
+    }
+    return <WrappedComponent {...props} />;
+  }
+
+  GuardedComponent.displayName =
+    \`withAuthGuard(\${WrappedComponent.displayName || WrappedComponent.name})\`;
+
+  return GuardedComponent;
+}
+
+// withAnalytics — tracks mount & route changes
+function withAnalytics(WrappedComponent, eventName) {
+  return function TrackedComponent(props) {
+    useEffect(() => {
+      analytics.track(eventName, { path: window.location.pathname });
+    }, []);
+    return <WrappedComponent {...props} />;
+  };
+}
+
+// Compose multiple HOCs (right to left)
+const enhance = compose(
+  withAuthGuard,
+  withAnalytics('dashboard_view'),
+  withErrorBoundary,
+);
+
+export default enhance(Dashboard);`,
+tip:"Always forward refs (React.forwardRef) and set displayName inside HOCs, or debugging in React DevTools becomes a nightmare.",tiptype:"warn"},
+
+controlled:{title:"Controlled vs Uncontrolled Components",badge:"react",tags:["controlled","uncontrolled","forms","refs"],
+subtitle:"Understand when React owns the state (controlled) vs when the DOM owns it (uncontrolled via ref). Choosing wrong causes subtle bugs.",
+why:"Mixing controlled and uncontrolled on the same input causes React warnings and unpredictable behaviour.",
+code:`// CONTROLLED — React owns value (great for validation, formatting)
+function EmailInput({ value, onChange, error }) {
+  return (
+    <div>
+      <input
+        type="email"
+        value={value}
+        onChange={e => onChange(e.target.value.toLowerCase())}
+        aria-invalid={!!error}
+      />
+      {error && <span role="alert">{error}</span>}
+    </div>
+  );
+}
+
+// UNCONTROLLED — DOM owns value (great for file inputs, 3rd-party libs)
+function FileUpload({ onSubmit }) {
+  const fileRef = useRef(null);
+
+  const handleSubmit = () => {
+    const file = fileRef.current?.files?.[0];
+    if (file) onSubmit(file);
+  };
+
+  return (
+    <>
+      <input type="file" ref={fileRef} accept="image/*" />
+      <button onClick={handleSubmit}>Upload</button>
+    </>
+  );
+}
+
+// HYBRID — useRef for expensive third-party (e.g., rich text editor)
+function RichEditor({ initialContent, onChange }) {
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    const editor = new QuillEditor(editorRef.current, { content: initialContent });
+    editor.on('text-change', () => onChange(editor.getContents()));
+    return () => editor.destroy();
+  }, []);
+
+  return <div ref={editorRef} />;
+}`,
+tip:"React 19+ introduces Actions and form actions — revisit controlled patterns when adopting the new form APIs.",tiptype:"info"},
+
+"custom-hook":{title:"Custom Hooks",badge:"react",tags:["hooks","reuse","separation","composition"],
+subtitle:"Extract stateful logic into named use* functions. The #1 way to share behaviour across components without HOCs or render props.",
+why:"Custom hooks remove logic from components, making both independently testable and reusable.",
+code:`// useLocalStorage — synced, typed, SSR-safe
+function useLocalStorage(key, initialValue) {
+  const [stored, setStored] = useState(() => {
+    if (typeof window === 'undefined') return initialValue;
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch { return initialValue; }
+  });
+
+  const setValue = useCallback((value) => {
+    const next = typeof value === 'function' ? value(stored) : value;
+    setStored(next);
+    localStorage.setItem(key, JSON.stringify(next));
+  }, [stored, key]);
+
+  return [stored, setValue];
+}
+
+// useDebounce
+function useDebounce(value, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
+// useIntersectionObserver — infinite scroll / lazy load
+function useInView(ref, options = {}) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => setInView(e.isIntersecting), options);
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref, options]);
+  return inView;
+}`,
+tip:"Never call hooks conditionally. If you need conditional behaviour, put the condition inside the hook.",tiptype:"danger"},
+
+provider:{title:"Context + Provider Pattern",badge:"react",tags:["context","provider","global-state","DI"],
+subtitle:"Encapsulate a domain's state and actions in a Provider component, exposing a typed custom hook. Avoids Redux for medium-complexity shared state.",
+why:"Naked useContext calls scatter knowledge of context shape across the codebase. The Provider Pattern centralises it.",
+code:`// theme/ThemeProvider.tsx
+type Theme = 'light' | 'dark' | 'system';
+
+interface ThemeContextValue {
+  theme: Theme;
+  resolvedTheme: 'light' | 'dark';
+  setTheme: (t: Theme) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useLocalStorage<Theme>('theme', 'system');
+
+  const resolvedTheme = useMemo(() => {
+    if (theme !== 'system') return theme;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark' : 'light';
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = resolvedTheme;
+  }, [resolvedTheme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// Typed hook — throws if used outside provider
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+}`,
+tip:"Split contexts by update frequency. A slow UserContext and a fast NotificationContext prevents notification updates from re-rendering the whole tree.",tiptype:"warn"},
+
+portal:{title:"Portals",badge:"react",tags:["portal","modal","overlay","DOM"],
+subtitle:"Render children into a DOM node outside the component hierarchy — essential for modals, tooltips, and toasts.",
+why:"Without portals, modals are trapped inside overflow:hidden or z-index stacking contexts, causing invisible or incorrectly clipped overlays.",
+code:`// Modal Portal
+function Modal({ isOpen, onClose, children, title }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      style={{
+        position: 'fixed', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,.5)', zIndex: 9999,
+      }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: 560, width: '90%' }}>
+        <h2 id="modal-title">{title}</h2>
+        {children}
+      </div>
+    </div>,
+    document.getElementById('portal-root') ?? document.body
+  );
+}`,
+tip:"Add a <div id='portal-root'></div> at the end of your <body> so portals don't compete with your app's stacking context.",tiptype:"info"},
+
+"error-boundary":{title:"Error Boundaries",badge:"react",tags:["error-boundary","resilience","class-component","UX"],
+subtitle:"Class components that catch JS errors in their subtree and render a fallback UI instead of crashing the whole app.",
+why:"An unhandled error in a single widget should never take down the entire application.",
+code:`// ErrorBoundary class component (required — no hook equivalent)
+class ErrorBoundary extends Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    // Send to Sentry / Datadog
+    errorReporter.capture(error, { componentStack: info.componentStack });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+        ? this.props.fallback(this.state.error, () => this.setState({ hasError: false }))
+        : <DefaultError />;
+    }
+    return this.props.children;
+  }
+}
+
+// Usage — scope boundaries tightly
+function Dashboard() {
+  return (
+    <div>
+      <ErrorBoundary fallback={(err, retry) =>
+        <WidgetError message={err.message} onRetry={retry} />
+      }>
+        <RevenueChart />
+      </ErrorBoundary>
+
+      <ErrorBoundary fallback={(err) => <p>Notifications unavailable</p>}>
+        <NotificationFeed />
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+// react-error-boundary (library) for cleaner hook-based usage
+import { ErrorBoundary } from 'react-error-boundary';`,
+tip:"Wrap each independent widget in its own boundary. One global boundary is almost as bad as no boundary.",tiptype:"warn"},
+
+"forward-ref":{title:"forwardRef & useImperativeHandle",badge:"react",tags:["forwardRef","refs","imperative","escape-hatch"],
+subtitle:"Expose DOM nodes or imperative methods from a child component to its parent — the controlled escape hatch from the React data flow.",
+why:"Design system inputs need to accept ref forwarding so form libraries (react-hook-form) can manage focus, validation, and field reset.",
+code:`// Input component with forwarded ref
+const TextInput = forwardRef(function TextInput(
+  { label, error, ...props },
+  ref
+) {
+  return (
+    <div>
+      <label>{label}</label>
+      <input ref={ref} aria-invalid={!!error} {...props} />
+      {error && <span role="alert">{error}</span>}
+    </div>
+  );
+});
+
+// useImperativeHandle — expose only a deliberate API
+const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
+  const videoRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    play:  () => videoRef.current?.play(),
+    pause: () => videoRef.current?.pause(),
+    seek:  (t) => { if (videoRef.current) videoRef.current.currentTime = t; },
+  }), []);
+
+  return <video ref={videoRef} src={src} />;
+});
+
+// Parent controls the player imperatively
+function Lesson() {
+  const playerRef = useRef(null);
+  return (
+    <>
+      <VideoPlayer ref={playerRef} src="/lesson.mp4" />
+      <button onClick={() => playerRef.current?.play()}>Play</button>
+      <button onClick={() => playerRef.current?.seek(0)}>Restart</button>
+    </>
+  );
+}`,
+tip:"If you're reaching for useImperativeHandle often, reconsider whether the action should be state-driven instead.",tiptype:"info"},
+
+separation:{title:"Separation of Concerns",badge:"arch",tags:["architecture","SoC","layering","maintainability"],
+subtitle:"Each module, file, or function should have one reason to change. Split data fetching, business logic, and presentation into distinct layers.",
+why:"God components that fetch, transform, validate, and render are impossible to test and painful to change.",
+code:`// ANTI-PATTERN — one component does everything
+function OrderPage({ orderId }) {
+  const [order, setOrder] = useState(null);
+  useEffect(() => {
+    fetch(\`/api/orders/\${orderId}\`)
+      .then(r => r.json())
+      .then(d => {
+        const total = d.items.reduce((s, i) => s + i.price * i.qty, 0);
+        setOrder({ ...d, total, formattedTotal: \`₹\${total.toFixed(2)}\` });
+      });
+  }, [orderId]);
+  if (!order) return <Spinner />;
+  return <div>...</div>;
+}
+
+// WELL-SEPARATED
+
+// 1. Data layer — services/orderService.ts
+export const orderService = {
+  get: (id) => api.get(\`/orders/\${id}\`),
+};
+
+// 2. Domain logic — domain/order.ts
+export function computeOrderSummary(order) {
+  const total = order.items.reduce((s, i) => s + i.price * i.qty, 0);
+  return { ...order, total, formattedTotal: formatCurrency(total) };
+}
+
+// 3. Data hook — hooks/useOrder.ts
+export function useOrder(id) {
+  return useQuery(['order', id], () => orderService.get(id).then(computeOrderSummary));
+}
+
+// 4. Presentation — components/OrderPage.tsx
+function OrderPage({ orderId }) {
+  const { data, isLoading } = useOrder(orderId);
+  if (isLoading) return <Spinner />;
+  return <OrderView order={data} />;
+}`,
+tip:"If a unit test for your component requires mocking the network, your separation of concerns is broken.",tiptype:"danger"},
+
+"container-presenter":{title:"Container / Presenter Pattern",badge:"arch",tags:["container","presenter","smart","dumb"],
+subtitle:"Smart containers own state and data fetching. Dumb presenters receive props and render UI. A timeless split that predates hooks.",
+why:"Presenters become Storybook-friendly, fully testable with just props, and reusable across different data sources.",
+code:`// PRESENTER — pure UI, no network knowledge
+function UserProfileCard({ name, avatar, bio, onFollow, isFollowing }) {
+  return (
+    <article>
+      <img src={avatar} alt={name} />
+      <h2>{name}</h2>
+      <p>{bio}</p>
+      <button onClick={onFollow}>
+        {isFollowing ? 'Unfollow' : 'Follow'}
+      </button>
+    </article>
+  );
+}
+
+// CONTAINER — owns state, data, side effects
+function UserProfileContainer({ userId }) {
+  const { data: user, isLoading } = useUser(userId);
+  const { mutate: toggleFollow } = useFollowMutation();
+  const [isFollowing, setFollowing] = useState(false);
+
+  if (isLoading) return <ProfileSkeleton />;
+
+  return (
+    <UserProfileCard
+      name={user.name}
+      avatar={user.avatarUrl}
+      bio={user.bio}
+      isFollowing={isFollowing}
+      onFollow={() => {
+        setFollowing(f => !f);
+        toggleFollow(userId);
+      }}
+    />
+  );
+}
+
+// Test presenter in isolation — no mocking needed
+render(<UserProfileCard name="Priya" avatar="..." bio="..." onFollow={() => {}} isFollowing={false} />)`,
+tip:"With hooks, the boundary is now the hook (container) vs the component (presenter). The principle is the same.",tiptype:"info"},
+
+"feature-folder":{title:"Feature Folder Structure",badge:"arch",tags:["architecture","folder-structure","colocation","scalability"],
+subtitle:"Co-locate all files for a feature in one folder. Scale from solo dev to 50-person team without cross-cutting import chaos.",
+why:"Files-by-type (all components/ all hooks/ all services/) causes massive import paths and makes deleting a feature a grep exercise.",
+code:`src/
+  features/
+    auth/
+      index.ts              ← public API (barrel)
+      AuthProvider.tsx
+      LoginForm.tsx
+      useAuth.ts
+      authService.ts
+      authSlice.ts
+      auth.test.ts
+      types.ts
+
+    orders/
+      index.ts
+      OrderList.tsx
+      OrderDetail.tsx
+      useOrders.ts
+      orderService.ts
+      orderUtils.ts
+      orders.test.ts
+
+  shared/
+    components/             ← truly reusable UI
+      Button/
+      Modal/
+    hooks/                  ← domain-agnostic hooks
+      useDebounce.ts
+      useLocalStorage.ts
+    utils/
+      formatCurrency.ts
+      parseDate.ts
+
+  app/
+    App.tsx
+    router.tsx
+    store.ts
+
+// Rule: features import from shared, never from each other.
+// Cross-feature data goes through a shared service or global store.`,
+tip:"When a feature grows beyond ~10 files, it's a sign to split it into sub-features. Keep each sub-feature self-contained.",tiptype:"info"},
+
+"service-layer":{title:"Service Layer Pattern",badge:"arch",tags:["service","abstraction","API","testability"],
+subtitle:"Abstract all I/O (HTTP, localStorage, WebSocket) behind a service object. Components and hooks never call fetch() directly.",
+why:"When your API endpoint changes or you switch from REST to GraphQL, you update the service — not every component.",
+code:`// services/http.ts — base client
+const http = {
+  async get(path, params) {
+    const url = new URL(path, API_BASE);
+    if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    const res = await fetch(url, { headers: getAuthHeaders() });
+    if (!res.ok) throw new ApiError(res.status, await res.json());
+    return res.json();
+  },
+  post: (path, body) => /* ... */,
+  patch: (path, body) => /* ... */,
+  delete: (path) => /* ... */,
+};
+
+// services/userService.ts
+export const userService = {
+  getById:   (id)          => http.get(\`/users/\${id}\`),
+  update:    (id, payload) => http.patch(\`/users/\${id}\`, payload),
+  search:    (query)       => http.get('/users', { q: query }),
+  delete:    (id)          => http.delete(\`/users/\${id}\`),
+};
+
+// hooks/useUser.ts — hook composes with service
+export function useUser(id) {
+  return useQuery(['user', id], () => userService.getById(id));
+}
+
+// Testing — mock the service, not fetch
+jest.mock('@/services/userService', () => ({
+  userService: { getById: jest.fn().mockResolvedValue(mockUser) }
+}));`,
+tip:"Return domain objects from services, not raw API responses. Map the response inside the service so callers don't need to know about API shape.",tiptype:"good"},
+
+adapter:{title:"Adapter / Anti-Corruption Layer",badge:"arch",tags:["adapter","ACL","third-party","decoupling"],
+subtitle:"Wrap third-party libraries and external APIs behind an interface you own. Swap implementations without touching application code.",
+why:"Tightly coupling to a third-party library (Stripe, Mixpanel, Firebase) means their API changes cascade through your entire codebase.",
+code:`// analytics/types.ts — your interface
+interface AnalyticsService {
+  track(event: string, props?: Record<string, unknown>): void;
+  identify(userId: string, traits?: Record<string, unknown>): void;
+  page(name: string): void;
+}
+
+// analytics/mixpanelAdapter.ts
+export function createMixpanelAdapter(token: string): AnalyticsService {
+  mixpanel.init(token);
+  return {
+    track:    (e, p)   => mixpanel.track(e, p),
+    identify: (id, t)  => { mixpanel.identify(id); mixpanel.people.set(t); },
+    page:     (name)   => mixpanel.track('Page Viewed', { page: name }),
+  };
+}
+
+// analytics/index.ts — inject at startup, use everywhere
+let _analytics: AnalyticsService;
+export const analytics = {
+  init: (impl: AnalyticsService) => { _analytics = impl; },
+  track:    (...a) => _analytics.track(...a),
+  identify: (...a) => _analytics.identify(...a),
+  page:     (...a) => _analytics.page(...a),
+};
+
+// App startup
+analytics.init(createMixpanelAdapter(MIXPANEL_TOKEN));
+
+// Switching to PostHog later — one file changes, nothing else does
+analytics.init(createPostHogAdapter(POSTHOG_KEY));`,
+tip:"Always write the interface first, then the adapter. This forces you to define what your app actually needs vs what the library exposes.",tiptype:"good"},
+
+"command-query":{title:"Command Query Separation (CQS)",badge:"arch",tags:["CQS","CQRS","side-effects","clarity"],
+subtitle:"Functions either return data (queries) or cause side effects (commands) — never both. Predictability at the function level.",
+why:"Functions that both mutate and return make code hard to trace, test, and reason about in concurrent environments.",
+code:`// VIOLATES CQS — mutates AND returns
+function processOrder(cart) {
+  cart.processed = true;       // command (mutation)
+  cart.processedAt = Date.now(); // command
+  return cart.total;           // query
+}
+
+// CQS-COMPLIANT
+// Query — pure, no side effects
+function getOrderTotal(cart) {
+  return cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+// Command — explicit side effect, returns void
+function markOrderProcessed(cart) {
+  cart.processed = true;
+  cart.processedAt = Date.now();
+}
+
+// React Query applies CQS:
+// useQuery = query (fetches, no mutation)
+// useMutation = command (mutates, invalidates queries)
+const { data: total } = useQuery(['cart-total', cartId], getOrderTotal);
+const { mutate: process } = useMutation(markOrderProcessed, {
+  onSuccess: () => queryClient.invalidateQueries(['cart-total', cartId]),
+});`,
+tip:"CQS is a principle, not a law. Increment-and-return (i++) is a pragmatic violation. Apply judgement at the module boundary level.",tiptype:"info"},
+
+"event-emitter":{title:"Event Emitter / PubSub",badge:"arch",tags:["pubsub","events","decoupling","cross-feature"],
+subtitle:"A lightweight publish/subscribe bus for decoupled cross-feature communication without prop drilling or shared context.",
+why:"Feature A shouldn't import Feature B just to notify it. An event bus inverts the dependency.",
+code:`// utils/eventBus.ts
+type Listener<T> = (payload: T) => void;
+
+class EventBus {
+  private listeners = new Map<string, Set<Listener<any>>>();
+
+  on<T>(event: string, fn: Listener<T>): () => void {
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+    this.listeners.get(event)!.add(fn);
+    return () => this.listeners.get(event)?.delete(fn); // unsubscribe
+  }
+
+  emit<T>(event: string, payload?: T) {
+    this.listeners.get(event)?.forEach(fn => fn(payload));
+  }
+}
+
+export const eventBus = new EventBus();
+
+// Feature: Auth emits logout
+function logoutUser() {
+  clearSession();
+  eventBus.emit('auth:logout');
+}
+
+// Feature: Cart reacts — without knowing about Auth
+function CartProvider({ children }) {
+  const { clearCart } = useCartState();
+
+  useEffect(() => {
+    const off = eventBus.on('auth:logout', clearCart);
+    return off; // clean up on unmount
+  }, [clearCart]);
+
+  return <CartContext.Provider ...>{children}</CartContext.Provider>;
+}`,
+tip:"Don't overuse event buses — they make call graphs invisible. Reserve them for genuinely decoupled cross-feature notifications.",tiptype:"warn"},
+
+memoization:{title:"Memoization: useMemo & useCallback",badge:"perf",tags:["useMemo","useCallback","performance","renders"],
+subtitle:"Cache expensive computations (useMemo) and stable function references (useCallback) to prevent unnecessary child re-renders.",
+why:"Every re-render re-creates functions and recalculates values by default. This breaks React.memo and triggers effects unnecessarily.",
+code:`// useMemo — cache expensive computation
+function ProductList({ products, filters }) {
+  // Re-runs only when products or filters change
+  const filtered = useMemo(() => {
+    return products
+      .filter(p => p.category === filters.category)
+      .filter(p => p.price <= filters.maxPrice)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [products, filters]);
+
+  return <VirtualList items={filtered} />;
+}
+
+// useCallback — stable ref for memoised child
+const MemoChild = React.memo(function Child({ onSave }) {
+  return <button onClick={onSave}>Save</button>;
+});
+
+function Parent({ id }) {
+  const [data, setData] = useState('');
+
+  // Without useCallback, MemoChild re-renders every time Parent renders
+  const handleSave = useCallback(() => {
+    api.save(id, data);
+  }, [id, data]);
+
+  return <MemoChild onSave={handleSave} />;
+}
+
+// RULE: Don't memoize everything.
+// Profile first. Memoize when:
+// 1. The computation is demonstrably slow (>1ms)
+// 2. The child is wrapped in React.memo
+// 3. The value is a dep of another hook`,
+tip:"Premature memoization adds cognitive overhead and can even slow things down. Measure with React Profiler before adding useMemo/useCallback.",tiptype:"warn"},
+
+"lazy-suspense":{title:"Code Splitting with lazy + Suspense",badge:"perf",tags:["lazy","Suspense","bundle-splitting","performance"],
+subtitle:"Split your JS bundle at route or component boundaries. Load code only when it's needed.",
+why:"A monolithic bundle means every user downloads admin code, payment code, and charts — even if they'll never use them.",
+code:`// Route-level splitting — most impactful
+import { lazy, Suspense } from 'react';
+
+const Dashboard  = lazy(() => import('@/features/dashboard'));
+const AdminPanel = lazy(() => import('@/features/admin'));
+const Reports    = lazy(() => import('@/features/reports'));
+
+function App() {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin"     element={<AdminPanel />} />
+        <Route path="/reports"   element={<Reports />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
+// Component-level splitting (heavy widgets)
+const HeavyChart = lazy(() => import('@/components/HeavyChart'));
+
+function AnalyticsCard({ show }) {
+  return show
+    ? <Suspense fallback={<ChartSkeleton />}><HeavyChart /></Suspense>
+    : <EmptyState />;
+}
+
+// Named export shim
+const AdminSettings = lazy(() =>
+  import('@/features/admin').then(m => ({ default: m.AdminSettings }))
+);`,
+tip:"Pair lazy loading with preloading on hover or route-transition for near-instant perceived load times: import('@/features/admin') in onMouseEnter.",tiptype:"good"},
+
+"virtual-list":{title:"Virtualised Lists",badge:"perf",tags:["virtual","windowing","performance","DOM"],
+subtitle:"Render only the visible rows of a large list. Swap DOM nodes as the user scrolls instead of mounting thousands at once.",
+why:"Rendering 10,000 list items creates 10,000 DOM nodes, causing layout thrashing and memory pressure. Virtualisation keeps it constant.",
+code:`import { useVirtualizer } from '@tanstack/react-virtual';
+
+function VirtualUserList({ users }) {
+  const parentRef = useRef(null);
+
+  const virtualizer = useVirtualizer({
+    count: users.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 64, // estimated row height in px
+    overscan: 5,            // extra rows above/below viewport
+  });
+
+  return (
+    <div
+      ref={parentRef}
+      style={{ height: '600px', overflowY: 'auto' }}
+    >
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(vRow => (
+          <div
+            key={vRow.key}
+            data-index={vRow.index}
+            ref={virtualizer.measureElement}    // dynamic height measurement
+            style={{ position: 'absolute', top: vRow.start, width: '100%' }}
+          >
+            <UserRow user={users[vRow.index]} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// For grids: use react-window or @tanstack/react-virtual's grid APIs`,
+tip:"Also virtualise horizontal axes for wide tables. react-virtuoso handles variable-height rows more ergonomically.",tiptype:"info"},
+
+"debounce-throttle":{title:"Debounce & Throttle",badge:"perf",tags:["debounce","throttle","performance","events"],
+subtitle:"Rate-limit expensive handlers. Debounce waits for silence; throttle guarantees maximum call frequency.",
+why:"A search input without debounce fires an API call on every keystroke. A scroll handler without throttle fires hundreds of times per second.",
+code:`// Debounce — fire after N ms of silence (search, autosave)
+function useDebounce(value, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
+function SearchBar() {
+  const [term, setTerm] = useState('');
+  const debouncedTerm = useDebounce(term, 400);
+
+  const { data } = useQuery(['search', debouncedTerm], () =>
+    debouncedTerm ? searchApi(debouncedTerm) : []
+  );
+
+  return <input value={term} onChange={e => setTerm(e.target.value)} />;
+}
+
+// Throttle — fire at most once per N ms (scroll, resize, mousemove)
+function useThrottle(fn, delay = 100) {
+  const lastRun = useRef(0);
+  return useCallback((...args) => {
+    const now = Date.now();
+    if (now - lastRun.current >= delay) {
+      lastRun.current = now;
+      fn(...args);
+    }
+  }, [fn, delay]);
+}
+
+function ScrollTracker() {
+  const trackScroll = useThrottle(
+    () => analytics.track('scroll', { y: window.scrollY }),
+    200
+  );
+  useEffect(() => {
+    window.addEventListener('scroll', trackScroll);
+    return () => window.removeEventListener('scroll', trackScroll);
+  }, [trackScroll]);
+}`,
+tip:"For search bars specifically, cancel the in-flight request when a new keystroke arrives (AbortController) — debounce alone isn't enough.",tiptype:"warn"},
+
+"web-worker":{title:"Offload with Web Workers",badge:"perf",tags:["web-worker","concurrent","heavy-compute","non-blocking"],
+subtitle:"Move CPU-intensive work off the main thread so the UI stays responsive. Parse large CSVs, run algorithms, process images in a worker.",
+why:"Synchronous heavy computation on the main thread freezes the UI — scrolling stutters, animations drop frames, inputs feel laggy.",
+code:`// worker.ts
+self.onmessage = ({ data: { type, payload } }) => {
+  if (type === 'PARSE_CSV') {
+    const rows = parseCSV(payload);          // heavy sync work
+    const summary = computeSummary(rows);    // aggregations
+    self.postMessage({ type: 'DONE', payload: { rows, summary } });
+  }
+};
+
+// useWorker.ts
+function useWorker(workerUrl) {
+  const workerRef = useRef(null);
+
+  useEffect(() => {
+    workerRef.current = new Worker(new URL(workerUrl, import.meta.url), {
+      type: 'module'
+    });
+    return () => workerRef.current?.terminate();
+  }, [workerUrl]);
+
+  const send = useCallback((message) => {
+    return new Promise((resolve, reject) => {
+      workerRef.current.postMessage(message);
+      workerRef.current.onmessage = ({ data }) => resolve(data);
+      workerRef.current.onerror   = reject;
+    });
+  }, []);
+
+  return send;
+}
+
+// Component
+function CsvImporter() {
+  const send = useWorker('./csvWorker.ts');
+  const [result, setResult] = useState(null);
+
+  const handleFile = async (file) => {
+    const text = await file.text();
+    const { payload } = await send({ type: 'PARSE_CSV', payload: text });
+    setResult(payload);
+  };
+}`,
+tip:"Consider Comlink (by the Chrome team) — it wraps the Worker postMessage pattern with a proxy so you can call worker functions like async functions.",tiptype:"info"},
+
+reducer:{title:"useReducer for Complex State",badge:"react",tags:["useReducer","state-machine","predictable","actions"],
+subtitle:"Replace multiple useState calls with a single reducer when state transitions have logic or interdependency.",
+why:"With 5+ useState values that update together, state invariants are impossible to enforce and bugs accumulate silently.",
+code:`// Reducer — all state logic in one pure function
+type Action =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: Order[] }
+  | { type: 'FETCH_ERROR';   payload: string }
+  | { type: 'SELECT';        payload: string }
+  | { type: 'CLEAR_SELECTION' };
+
+interface State {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  orders: Order[];
+  selectedId: string | null;
+  error: string | null;
+}
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, status: 'loading', error: null };
+    case 'FETCH_SUCCESS':
+      return { ...state, status: 'success', orders: action.payload };
+    case 'FETCH_ERROR':
+      return { ...state, status: 'error', error: action.payload };
+    case 'SELECT':
+      return { ...state, selectedId: action.payload };
+    case 'CLEAR_SELECTION':
+      return { ...state, selectedId: null };
+    default:
+      return state; // exhaustive check via TypeScript
+  }
+}
+
+function OrderManager() {
+  const [state, dispatch] = useReducer(reducer, {
+    status: 'idle', orders: [], selectedId: null, error: null
+  });
+  // ...
+}`,
+tip:"If your reducer's switch grows past ~10 cases, it's time for XState or Zustand. Reducers don't scale to parallel state machines.",tiptype:"warn"},
+
+"finite-state":{title:"Finite State Machines (XState)",badge:"react",tags:["xstate","state-machine","FSM","predictable"],
+subtitle:"Model component lifecycle as explicit states and transitions. Eliminates impossible states and boolean flag spaghetti.",
+why:"Boolean flags like isLoading + isError + isSuccess can all be true simultaneously in buggy code. An FSM makes impossible states impossible.",
+code:`import { createMachine, assign } from 'xstate';
+import { useMachine } from '@xstate/react';
+
+const checkoutMachine = createMachine({
+  id: 'checkout',
+  initial: 'cart',
+  context: { items: [], error: null },
+  states: {
+    cart: {
+      on: { PROCEED: 'payment' }
+    },
+    payment: {
+      on: {
+        SUBMIT:  'processing',
+        BACK:    'cart',
+      }
+    },
+    processing: {
+      invoke: {
+        src: 'processPayment',
+        onDone:  { target: 'confirmation' },
+        onError: { target: 'payment', actions: assign({ error: (_, e) => e.data.message }) }
+      }
+    },
+    confirmation: { type: 'final' },
+  }
+}, {
+  services: {
+    processPayment: ctx => paymentApi.charge(ctx.items),
+  }
+});
+
+function Checkout() {
+  const [state, send] = useMachine(checkoutMachine);
+
+  if (state.matches('processing')) return <PaymentSpinner />;
+  if (state.matches('confirmation')) return <ThankYou />;
+  if (state.matches('payment')) return (
+    <PaymentForm
+      error={state.context.error}
+      onSubmit={() => send('SUBMIT')}
+      onBack={() => send('BACK')}
+    />
+  );
+  return <CartView onProceed={() => send('PROCEED')} />;
+}`,
+tip:"XState Visualizer (stately.ai/viz) lets you draw and simulate your machine before writing a single component.",tiptype:"good"},
+
+"optimistic-ui":{title:"Optimistic UI Updates",badge:"react",tags:["optimistic","UX","mutations","React-Query"],
+subtitle:"Update the UI immediately on user action, then sync with the server. Roll back on failure. Makes apps feel instant.",
+why:"Waiting for a server round-trip to show a like, a todo, or a comment feels sluggish. Optimistic updates feel native.",
+code:`// React Query's built-in optimistic update
+function useLikeMutation(postId) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (liked) => api.toggleLike(postId, liked),
+
+    onMutate: async (liked) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(['post', postId]);
+
+      // Snapshot current value
+      const prev = queryClient.getQueryData(['post', postId]);
+
+      // Optimistically update
+      queryClient.setQueryData(['post', postId], old => ({
+        ...old,
+        liked,
+        likeCount: liked ? old.likeCount + 1 : old.likeCount - 1,
+      }));
+
+      return { prev }; // rollback context
+    },
+
+    onError: (err, _, ctx) => {
+      // Roll back on failure
+      queryClient.setQueryData(['post', postId], ctx.prev);
+      toast.error('Failed to update like');
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries(['post', postId]);
+    },
+  });
+}`,
+tip:"Always implement the rollback path. An optimistic update without rollback is a data consistency bug waiting to happen.",tiptype:"danger"},
+
+"derived-state":{title:"Derive — Don't Duplicate State",badge:"react",tags:["derived-state","single-source","DRY","state"],
+subtitle:"Compute values from existing state instead of syncing separate state variables. Duplication always diverges.",
+why:"Two pieces of state that represent the same data will eventually disagree, causing UI bugs that are nearly impossible to reproduce.",
+code:`// BAD — duplicated state
+function ProductSearch({ products }) {
+  const [search, setSearch] = useState('');
+  const [filtered, setFiltered] = useState(products); // duplicates products!
+
+  // Forgetting this useEffect = stale filtered list
+  useEffect(() => {
+    setFiltered(products.filter(p => p.name.includes(search)));
+  }, [search, products]);
+}
+
+// GOOD — derive filtered from search + products
+function ProductSearch({ products }) {
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+
+  // Derived — no extra state, no sync bugs
+  const filtered = useMemo(() =>
+    products
+      .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+      .sort((a, b) => a[sortBy].localeCompare(b[sortBy])),
+    [products, search, sortBy]
+  );
+
+  return (
+    <>
+      <input value={search} onChange={e => setSearch(e.target.value)} />
+      <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+        <option value="name">Name</option>
+        <option value="price">Price</option>
+      </select>
+      {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+    </>
+  );
+}`,
+tip:"The rule: 'If you can compute it, don't store it.' Applies to counts, totals, filtered lists, and formatted values.",tiptype:"good"},
+
+"type-guard":{title:"Type Guards & Branded Types",badge:"js",tags:["typescript","type-guard","branded","safety"],
+subtitle:"Narrow types at runtime and brand primitive types to prevent misuse. Catches entire classes of bugs at compile time.",
+why:"Passing a userId where an orderId is expected is a runtime bug TypeScript can't catch without branded types.",
+code:`// Type guard — narrow at runtime
+function isApiError(value: unknown): value is ApiError {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'code' in value &&
+    'message' in value
+  );
+}
+
+async function fetchUser(id: string) {
+  try {
+    return await api.getUser(id);
+  } catch (err) {
+    if (isApiError(err)) {
+      // TypeScript knows err.code and err.message exist here
+      if (err.code === 404) return null;
+      throw err;
+    }
+    throw new Error('Unknown error');
+  }
+}
+
+// Branded types — prevent primitive confusion
+type Brand<T, B> = T & { __brand: B };
+
+type UserId  = Brand<string, 'UserId'>;
+type OrderId = Brand<string, 'OrderId'>;
+
+const toUserId  = (id: string): UserId  => id as UserId;
+const toOrderId = (id: string): OrderId => id as OrderId;
+
+function getUser(id: UserId) { /* ... */ }
+function getOrder(id: OrderId) { /* ... */ }
+
+const userId  = toUserId('u_123');
+const orderId = toOrderId('o_456');
+
+getUser(orderId); // TypeScript ERROR — can't pass OrderId as UserId
+getUser(userId);  // OK`,
+tip:"Branded types have zero runtime cost — the brand is only a TypeScript fiction erased at compile time.",tiptype:"good"},
+
+"null-object":{title:"Null Object Pattern",badge:"js",tags:["null-object","defensive","safe","default"],
+subtitle:"Provide a default object that implements the expected interface with no-op or fallback behaviour, eliminating null checks at call sites.",
+why:"Defensive null checks scattered everywhere are a code smell. Centralise the null case into a typed object.",
+code:`// User domain
+interface User {
+  id: string;
+  name: string;
+  role: 'admin' | 'viewer';
+  can: (permission: string) => boolean;
+}
+
+// Real user
+function createUser(data): User {
+  return {
+    ...data,
+    can: (permission) => ROLE_PERMISSIONS[data.role]?.includes(permission) ?? false,
+  };
+}
+
+// Null User — implements the same interface
+const NullUser: User = {
+  id: '',
+  name: 'Guest',
+  role: 'viewer',
+  can: () => false,           // safe no-op
+};
+
+// useAuth always returns a User — never null
+function useAuth(): User {
+  const { user } = useContext(AuthContext);
+  return user ?? NullUser;
+}
+
+// Call site — zero null checks needed
+function Navbar() {
+  const user = useAuth();
+  return (
+    <nav>
+      <span>Hello, {user.name}</span>
+      {user.can('manage:users') && <AdminLink />}
+    </nav>
+  );
+}`,
+tip:"The Null Object pattern works best for entities with behaviour (methods). For plain data, optional chaining is cleaner.",tiptype:"info"},
+
+"early-return":{title:"Early Return / Guard Clauses",badge:"js",tags:["early-return","guard-clauses","readability","clean-code"],
+subtitle:"Validate and reject early. Avoid nesting. The happy path is the last, unindented statement.",
+why:"Deep nesting from defensive conditions makes the happy path hard to find and logic hard to follow.",
+code:`// ANTI-PATTERN — pyramid of doom
+function processOrder(order) {
+  if (order) {
+    if (order.items.length > 0) {
+      if (order.user) {
+        if (order.user.isVerified) {
+          // happy path — buried 4 levels deep
+          return chargePayment(order);
+        } else {
+          throw new Error('User not verified');
+        }
+      } else {
+        throw new Error('No user');
+      }
+    } else {
+      throw new Error('Empty cart');
+    }
+  } else {
+    throw new Error('No order');
+  }
+}
+
+// GUARD CLAUSES — happy path at the bottom, flat
+function processOrder(order) {
+  if (!order)                  throw new Error('No order');
+  if (order.items.length === 0) throw new Error('Empty cart');
+  if (!order.user)             throw new Error('No user');
+  if (!order.user.isVerified)  throw new Error('User not verified');
+
+  return chargePayment(order); // happy path — obvious
+}
+
+// React component guard pattern
+function OrderDetail({ orderId }) {
+  const { data, isLoading, error } = useOrder(orderId);
+
+  if (isLoading) return <Spinner />;
+  if (error)     return <ErrorMessage error={error} />;
+  if (!data)     return <NotFound />;
+
+  return <OrderView order={data} />; // happy path
+}`,
+tip:"Guard clauses also work in React components (return early for loading/error/empty states). Known as the 'null check render' pattern.",tiptype:"good"},
+
+"error-first":{title:"Error-First & Result Types",badge:"js",tags:["error-handling","Result","Either","functional"],
+subtitle:"Make errors explicit in return types instead of relying on exceptions. Go-style Result types work beautifully in TypeScript.",
+why:"Exceptions are invisible in function signatures. A caller can't know a function throws without reading its implementation.",
+code:`// Result type
+type Ok<T>  = { ok: true;  value: T };
+type Err<E> = { ok: false; error: E };
+type Result<T, E = Error> = Ok<T> | Err<E>;
+
+const ok  = <T>(value: T): Ok<T>   => ({ ok: true,  value });
+const err = <E>(error: E): Err<E>  => ({ ok: false, error });
+
+// Service returns Result — never throws
+async function fetchUser(id: string): Promise<Result<User>> {
+  try {
+    const data = await api.getUser(id);
+    return ok(createUser(data));
+  } catch (e) {
+    return err(e instanceof Error ? e : new Error(String(e)));
+  }
+}
+
+// Caller must handle both cases — no silent failures
+const result = await fetchUser(userId);
+if (!result.ok) {
+  logger.error(result.error);
+  return showError(result.error.message);
+}
+const user = result.value; // TypeScript knows this is User
+
+// Chainable Result (neverthrow library)
+import { ResultAsync } from 'neverthrow';
+
+const user = await ResultAsync.fromPromise(
+  api.getUser(id),
+  (e) => new ApiError(e)
+);
+
+user
+  .map(data => createUser(data))
+  .mapErr(err => { logger.error(err); return null; })
+  .match(
+    user  => renderUser(user),
+    _null => renderFallback()
+  );`,
+tip:"neverthrow and Effect-ts are battle-tested Result/Effect libraries. Don't write your own chain combinators from scratch.",tiptype:"info"},
+
+"testing-trophy":{title:"Testing Trophy Strategy",badge:"test",tags:["testing","integration","unit","RTL"],
+subtitle:"Kent C. Dodds' Testing Trophy: few E2E tests, many integration tests, some unit tests, and type-checking as the base layer.",
+why:"A pyramid of unit tests that mock everything gives high coverage but low confidence. Integration tests at the boundary catch real bugs.",
+code:`// Integration test — tests the feature, not the implementation
+import { render, screen, userEvent } from '@testing-library/react';
+import { server } from '../mocks/server'; // MSW mock server
+import { rest } from 'msw';
+
+describe('Login flow', () => {
+  test('redirects to dashboard on success', async () => {
+    render(<App />, { wrapper: AllProviders });
+
+    await userEvent.type(screen.getByLabelText('Email'), 'priya@example.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret123');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await screen.findByText('Welcome back, Priya'); // async assertion
+    expect(window.location.pathname).toBe('/dashboard');
+  });
+
+  test('shows error on invalid credentials', async () => {
+    server.use(
+      rest.post('/api/login', (_, res, ctx) =>
+        res(ctx.status(401), ctx.json({ message: 'Invalid credentials' }))
+      )
+    );
+
+    render(<LoginForm />, { wrapper: AllProviders });
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials');
+  });
+});
+
+// Unit test — for pure domain logic
+test('computeOrderSummary applies discount', () => {
+  const order = makeOrder({ items: [{ price: 100, qty: 2 }], discountRate: 0.1 });
+  expect(computeOrderSummary(order).total).toBe(180);
+});`,
+tip:"Mock at the network boundary (MSW), not at the module boundary (jest.mock). Tests that mock modules test the mock, not the code.",tiptype:"good"},
+};
+
+const badgeLabels={js:"JavaScript",react:"React",arch:"Architecture",perf:"Performance",test:"Testing",sec:"Security"};
+
+function render(id){
+  const p=data[id];
+  if(!p){main.innerHTML='<p style="color:var(--color-text-tertiary);margin-top:40px;text-align:center">Select a practice from the sidebar</p>';return;}
+
+  const tagsHtml=p.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+
+  const tipClass={warn:'warn',danger:'danger',good:'good',info:''}[p.tiptype||'info'];
+
+  main.innerHTML=`
+    <span class="badge ${p.badge}">${badgeLabels[p.badge]||p.badge}</span>
+    <div class="practice-title">${p.title}</div>
+    <div class="practice-subtitle">${p.subtitle}</div>
+    <div class="tag-row">${tagsHtml}</div>
+    <div class="section-label">Why it matters</div>
+    <div class="tip-box good" style="margin-bottom:16px">${p.why}</div>
+    <div class="section-label">Implementation</div>
+    <div class="code-block">${escHtml(p.code)}</div>
+    ${p.tip?`<div class="tip-box ${tipClass}"><strong>Tip —</strong> ${p.tip}</div>`:''}
+  `;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildNav(){
+  const nav=document.getElementById('nav');
+  cats.forEach(cat=>{
+    const lbl=document.createElement('div');
+    lbl.className='cat-label';
+    lbl.textContent=cat.label;
+    nav.appendChild(lbl);
+    cat.items.forEach(item=>{
+      const el=document.createElement('div');
+      el.className='nav-item';
+      el.textContent=item.label;
+      el.dataset.id=item.id;
+      el.onclick=()=>{
+        document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+        el.classList.add('active');
+        render(item.id);
+        main.scrollTop=0;
+      };
+      nav.appendChild(el);
+    });
+  });
+}
+
+const main=document.getElementById('main');
+buildNav();
+
+// Activate first item
+const first=document.querySelector('.nav-item');
+if(first){first.classList.add('active');render(first.dataset.id);}
+</script>
